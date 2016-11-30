@@ -23,9 +23,11 @@ class RecipeController extends Controller
     public function home(){
         return view('Recipe.home');
     }
+
     public function UpdateHome(){
-$recipes = Recipe::all();
-        return view('Recipe.update_home' , compact('recipes'));
+        echo "heyy";
+//$recipes = Recipe::all();
+//        return view('Recipe.update_home' , compact('recipes'));
 
     }
 
@@ -78,6 +80,10 @@ $recipe = Recipe::find($id);
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    public function update_home($id){
+        $recipe = Recipe::find($id);
+return view ('Recipe.update_home' , compact('recipe'));
+    }
 
     public function update_recipe_done(Request $request , $id){
 //        $this->validate($request, [
@@ -98,7 +104,10 @@ $recipe = Recipe::find($id);
         $recipe->batchsize = $request->batchsize;
         $recipe->save();
 
-return redirect('/production/recipe/update');
+
+return redirect('/production/recipe/'.$recipe->id.'/update');
+
+
     }
 
     public function store(Request $request)
@@ -155,7 +164,6 @@ return redirect('/production/recipe/update');
         //
         $recipe = Recipe::find($id);
         return view('Recipe.update_recipe' , compact('recipe'));
-
 
     }
     public function rm_edit($id)

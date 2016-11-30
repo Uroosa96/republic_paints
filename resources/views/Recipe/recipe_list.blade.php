@@ -37,7 +37,7 @@
 
 
                         <td><a href="/production/recipe/{{$recipe->id}}/rm_list" class="btn btn-info">Show Raw Materials</a>
-                        <td><a href="/production/recipe/{{$recipe->id}}/edit" class="btn btn-info">Update Recipe</a>
+                        <td><a href="{{url('/production/recipe/'.$recipe->id.'/update')}}" class="btn btn-info">Update Recipe</a>
 
 
 

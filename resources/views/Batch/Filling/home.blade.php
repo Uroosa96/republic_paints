@@ -4,11 +4,15 @@
     <div class="container">
         <h1>Fillings for Batch ID: {{$batch->id}} </h1>
 
+
        @if(count($fills)==0)
            <h4>No Fillings created for this Batch yet.</h4>
             <a href="/production/batch/{{$batch->id}}/fill/create" class="btn btn-info">Create New Filling</a>
 
         @elseif(count($fills)>0)
+           <h4>Total weight of batch : {{$batch->gross_weight  - $batch->empty_weight}}</h4>
+<h4>Total weight of fillings : {{$total_fill}}</h4>
+        <h4>Batch left for filling: {{$batch->gross_weight  - $total_fill  - $batch->empty_weight}}</h4>
 
             <table class="table table-condensed" style="width:90%">
                 <tr>

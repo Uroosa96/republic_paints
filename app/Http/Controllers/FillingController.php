@@ -19,15 +19,20 @@ class FillingController extends Controller
     }
     public function home($id)
     {
-$fills = \DB::table('fillings')
-    ->join('packings' ,  'packings.id' , '=' ,'fillings.packing_id')
-    ->where('batch_id', '=', $id)
-    ->select('fillings.*' , 'packings.name' , 'packings.weight AS pck_weight')
-    ->get();
+        $fills = \DB::table('fillings')
+            ->join('packings', 'packings.id', '=', 'fillings.packing_id')
+            ->where('batch_id', '=', $id)
+            ->select('fillings.*', 'packings.name', 'packings.weight AS pck_weight')
+            ->get();
+
+        $total_fill = 0;
+        foreach ($fills as $fill){
+            $total_fill += $fill->weight;
+    }
 
 $filling_date = Batch::where('id', '=', $id)->select('filling_date')->get();
        $batch = Batch::find($id);
-        return view('Batch.Filling.home', compact('batch', 'fills','filling_date'));
+        return view('Batch.Filling.home', compact('batch', 'fills','filling_date' , 'total_fill'));
 
 
     }
@@ -139,15 +144,21 @@ if($drums==null) {
     public function create($id)
     {
 
-        $total_weight =  Batch::where('id' , '=' , $id)->select('gross_weight')->get();
+
         $batch = Batch::find($id);
 $packing = Packing::pluck('name');
-        return view('Batch.Filling.create',compact('total_weight' , 'batch','packing'));
 
+        $fills = \DB::table('fillings')
+            ->join('packings', 'packings.id', '=', 'fillings.packing_id')
+            ->where('batch_id', '=', $id)
+            ->select('fillings.*', 'packings.name', 'packings.weight AS pck_weight')
+            ->get();
 
-
-
-
+        $total_fill = 0;
+        foreach ($fills as $fill){
+            $total_fill += $fill->weight;
+        }
+        return view('Batch.Filling.create',compact('total_fill' , 'batch','packing'));
 
 
     }
@@ -161,32 +172,50 @@ $packing = Packing::pluck('name');
     public function store($id , Request $request)
     {
 
-        $pack = Packing::find($request->packing+1);
-        $exist = \DB::table('fillings')->where('packing_id' , '=' , $pack->id)
-            ->where('batch_id' , '=' , $id)->exists();
+        $batch = Batch::find($id);
+        $fills = \DB::table('fillings')
+            ->join('packings', 'packings.id', '=', 'fillings.packing_id')
+            ->where('batch_id', '=', $id)
+            ->select('fillings.*', 'packings.name', 'packings.weight AS pck_weight')
+            ->get();
 
-       if($exist){
-
-           $fill = Filling::where('packing_id' , '=' , $pack->id)
-               ->where('batch_id' , '=' , $id)->get();
-$filler =  $fill[0];
-           $qty = $filler->qty + $request->qty;
+        $total_fill = 0;
+        foreach ($fills as $fill){
+            $total_fill += $fill->weight;
+        }
 
 
 
-           $filler->qty = $qty;
-           $filler->weight = $qty * $pack->weight;
-           $filler->save();
-       }
-       else {
-           $fill = new Filling;
-           $fill->packing_id = $pack->id;
-           $fill->qty = $request->qty;
-           $fill->weight = $request->qty * $pack->weight;
-           $fill->unit = 'ltr';
-           $fill->batch_id = $id;
-           $fill->save();
-       }
+
+
+            $pack = Packing::find($request->packing + 1);
+            $exist = \DB::table('fillings')->where('packing_id', '=', $pack->id)
+                ->where('batch_id', '=', $id)->exists();
+
+            if ($exist) {
+
+                $fill = Filling::where('packing_id', '=', $pack->id)
+                    ->where('batch_id', '=', $id)->get();
+                $filler = $fill[0];
+
+                $qty = $filler->qty + $request->qty;
+                $batch_left = $batch->gross_weight - $total_fill - $batch->empty_weight;
+
+                if($qty<$batch_left) {
+                    $filler->qty = $qty;
+                    $filler->weight = $qty * $pack->weight;
+                    $filler->save();
+                }
+            }
+            else {
+                $fill = new Filling;
+                $fill->packing_id = $pack->id;
+                $fill->qty = $request->qty;
+                $fill->weight = $request->qty * $pack->weight;
+                $fill->unit = 'ltr';
+                $fill->batch_id = $id;
+                $fill->save();
+            }
 
 
 

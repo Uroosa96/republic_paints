@@ -38,7 +38,9 @@ class RMcontroller extends Controller
             ->where('recipe_rm.recipe_id','=',$id)
             ->get();
 
-        return view('Recipe.rm_update' , compact('rms'));
+        $recipe = Recipe::find($id);
+
+        return view('Recipe.rm_update' , compact('rms','recipe'));
     }
 
     /**
@@ -48,22 +50,22 @@ class RMcontroller extends Controller
      */
     public function create($id)
     {
-        //
-                $rec = Recipe::find($id);
 
-        $raw_mat= \DB::table('raw_materials')
+        $raws= \DB::table('raw_materials')
             ->join('recipe_rm','raw_materials.rm_code','=','recipe_rm.rm_code')
             ->select('raw_materials.*','recipe_rm.recipe_id','recipe_rm.qty','recipe_rm.rm_code')
             ->where('recipe_rm.recipe_id','=',$id)
             ->get();
 
-      //  $rms = \DB::select('raw__materials');
 
-//   echo $rec;
-//        echo $raw_mat;
-      // echo $rms;
-      return view('Recipe.add_rm_update' , compact('raw_mat','rec'));
 
+        $rec= Recipe::find($id);
+
+        $rms = \DB::select('select * from raw_materials');
+
+
+
+        return view('Recipe.add_rm_update'  , compact('raws','rec','rms'));
 
     }
 
@@ -134,8 +136,8 @@ class RMcontroller extends Controller
 //echo $id1;
 //        echo $id2;
 
-        $recipe = Recipe::find($id2);
-      $req= \DB::table('recipe_rm')->where('recipe_id', '=',$id1)->where('rm_code', '=', $recipe->rm_code)->get();
+
+      $req= \DB::table('recipe_rm')->where('recipe_id', '=',$id1)->where('rm_code', '=', $id2)->get();
 
 
 
@@ -171,9 +173,9 @@ class RMcontroller extends Controller
 //dd($request);
 
       //  echo $request->qty;
-        $recipe = Recipe::find($id2);
+
         \DB::table('recipe_rm')
-            ->where('recipe_id', '=',$id1)->where('rm_code', '=', $recipe->rm_code)
+            ->where('recipe_id', '=',$id1)->where('rm_code', '=', $id2)
             ->update([ 'qty' => $request->qty ]);
 
 
